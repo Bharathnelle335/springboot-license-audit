@@ -1,8 +1,6 @@
-name: OSS Compliance - Spring Boot
+name: OSS Compliance - SCANOSS + Syft
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
