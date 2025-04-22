@@ -1,0 +1,48 @@
+name: OSS Compliance - Spring Boot
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  scan-and-report:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Spring Boot code
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Build Spring Boot to resolve dependencies
+      run: ./mvnw clean install -DskipTests
+
+    - name: Install SCANOSS + Syft
+      run: |
+        pip install scanoss
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+    - name: SCANOSS Scan
+      run: scanoss-py scan -o scanoss-results.json .
+
+    - name: Generate SBOM using Syft
+      run: syft dir:. -o spdx-json > syft-sbom.spdx.json
+
+    - name: Install Python libs for Excel report
+      run: pip install pandas openpyxl
+
+    - name: Generate Compliance Report (Excel)
+      run: python generate_excel_report.py scanoss-results.json syft-sbom.spdx.json
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: springboot-compliance-report
+        path: |
+          compliance-report.xlsx
+          syft-sbom.spdx.json
