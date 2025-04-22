@@ -18,7 +18,7 @@ jobs:
         java-version: '21'
 
     - name: Build Spring Boot to resolve dependencies
-      run: ./mvnw clean install -DskipTests
+      run: mvn clean install -DskipTests
 
     - name: Install SCANOSS + Syft
       run: |
